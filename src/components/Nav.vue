@@ -72,7 +72,6 @@
       >
         <span><i class="fas fa-plus"></i></span> New Invoice
       </button>
-      <p>{{ blur }}</p>
     </div>
   </div>
   <div class="no-invoices-layout" v-if="totalInvoices === 0">
