@@ -9,8 +9,8 @@
       <p class="invoice">
         <span class="invoice-id"><span>#</span>{{ invoice.invoiceId }}</span>
         <span class="due-date">Due {{ invoice.date }}</span>
-        <span class="client-name">{{ invoice.name }}</span>
-        <span class="total-price">€{{ invoice.total }}</span>
+        <span class="client-name">{{ invoice.clientName }}</span>
+        <span class="total-price">€{{ invoice.allTotal }}</span>
         <span v-if="invoice.status === 'Pending'" class="pending-status"
           ><span><i class="fas fa-circle"></i></span>{{ invoice.status }}</span
         >
@@ -33,6 +33,11 @@ export default {
   computed: {
     invoices() {
       return this.$store.getters.getInvoices;
+    },
+  },
+  methods: {
+    log() {
+      console.log(this.invoices);
     },
   },
 };

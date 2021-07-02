@@ -36,9 +36,8 @@ export default {
   background: #f8f8fb;
   width: 5.5rem;
   position: relative;
-  z-index: 5;
   height: 100%;
-  z-index: 11;
+  z-index: 20;
 }
 
 .logo {

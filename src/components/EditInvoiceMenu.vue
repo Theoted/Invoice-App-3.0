@@ -1,7 +1,8 @@
 <template>
+  <p @click="log()">oui</p>
   <div class="menu" :class="{ menuMove: getActive }">
     <form @submit.prevent>
-      <h2>New Invoice</h2>
+      <h2>Edit #{{ currentInvoice.invoiceId }}</h2>
       <div class="billFrom">
         <p>Bill From</p>
         <label for="billFrom__streetAdress">Street Adress</label>
@@ -191,10 +192,16 @@
       <button @click="newItem()" class="itemList_button">+ Add New Item</button>
 
       <div class="bottomButtons">
-        <button @click="toggleActive()" class="discard">Discard</button>
         <div class="save">
-          <button @click="setStatusDraft();sendInvoice()">Save as Draft</button>
-          <button @click="setStatusSend();sendInvoice()">Save & Send</button>
+          <button
+            @click="
+              toggleActive();
+              resetInputField();
+            "
+          >
+            Cancel
+          </button>
+          <button @click="editInvoice()">Save Changes</button>
         </div>
       </div>
     </form>
@@ -238,6 +245,26 @@ export default {
       allTotal: "",
     };
   },
+  mounted() {
+    this.type_FromStreet = this.currentInvoice.fromStreet;
+    this.type_FromCity = this.currentInvoice.fromCity;
+    this.type_FromPostCode = this.currentInvoice.fromPostCode;
+    this.type_FromCountry = this.currentInvoice.fromCountry;
+    this.type_ToClientName = this.currentInvoice.clientName;
+    this.type_ToClientEmail = this.currentInvoice.clientEmail;
+    this.type_ToClientStreetAdress = this.currentInvoice.clientStreet;
+    this.type_ToClientCity = this.currentInvoice.clientCity;
+    this.type_ToClientPostCode = this.currentInvoice.clientPostCode;
+    this.type_ToClientCountry = this.currentInvoice.clientCountry;
+    this.projectDescription = this.currentInvoice.projectDescription;
+    this.date = this.currentInvoice.date;
+
+    for (let i = 0; i < this.items.length; i++) {
+      this.items[i].itemName = this.currentInvoice.items[i].itemName;
+      this.items[i].itemQty = this.currentInvoice.items[i].itemQty;
+      this.items[i].itemPrice = this.currentInvoice.items[i].itemPrice;
+    }
+  },
   computed: {
     invoicesStore() {
       return this.$store.getters.getInvoices;
@@ -251,75 +278,50 @@ export default {
     blur() {
       return this.$store.getters.getBlur;
     },
+    currentInvoice() {
+      return this.$store.getters.getCurrentInvoice;
+    },
+    currentInvoiceItemsLength() {
+      return this.currentInvoice.items.length;
+    },
   },
   methods: {
-    sendInvoice() {
+    editInvoice() {
       this.toggleActive();
-      this.generateInvoiceId();
       this.formatDate();
-      this.allTotalCalc()
-      this.unshiftInvoiceSend();
-      this.incrementTotalInvoices();
+      this.sendEditInvoice();
+      this.allTotalCalc();
       this.resetInputField();
-    },
-    generateInvoiceId() {
-      let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      let result = "";
-      let chaactersLength = characters.length;
-
-      let randomNumbers =
-        Math.floor(Math.random() * 10) +
-        "" +
-        Math.floor(Math.random() * 10) +
-        "" +
-        Math.floor(Math.random() * 10) +
-        "" +
-        Math.floor(Math.random() * 10) +
-        "" +
-        Math.floor(Math.random() * 10);
-
-      for (let i = 0; i < 2; i++) {
-        result += characters.charAt(
-          Math.floor(Math.random() * chaactersLength)
-        );
-      }
-      let id = result + randomNumbers;
-      this.randomId = id;
     },
     formatDate() {
       let now = moment(this.date).format("DD MMM YYYY");
       this.formatedDate = now;
     },
-    unshiftInvoiceSend() {
-      this.invoicesStore.unshift({
-        id: this.invoicesStore.length,
-        status: this.status,
-        invoiceId: this.randomId,
+    sendEditInvoice() {
+      this.currentInvoice.fromStreet = this.type_FromStreet;
+      this.currentInvoice.fromCity = this.type_FromCity;
+      this.currentInvoice.fromPostCode = this.type_FromPostCode;
+      this.currentInvoice.fromCountry = this.type_FromCountry;
+      this.currentInvoice.clientName = this.type_ToClientName;
+      this.currentInvoice.clientEmail = this.type_ToClientEmail;
+      this.currentInvoice.clientStreet = this.type_ToClientStreetAdress;
+      this.currentInvoice.clientCity = this.type_ToClientCity;
+      this.currentInvoice.clientPostCode = this.type_ToClientPostCode;
+      this.currentInvoice.clientCountry = this.type_ToClientCountry;
+      this.currentInvoice.projectDescription = this.projectDescription;
 
-        fromStreet: this.type_FromStreet,
-        fromCity: this.type_FromCity,
-        fromPostCode: this.type_FromPostCode,
-        fromCountry: this.type_FromCountry,
+      this.itemsUnshift();
 
-        clientName: this.type_ToClientName,
-        clientEmail: this.type_ToClientEmail,
-        clientStreet: this.type_ToClientStreetAdress,
-        clientCity: this.type_ToClientCity,
-        clientPostCode: this.type_ToClientPostCode,
-        clientCountry: this.type_FromCountry,
-        
-        date: this.formatedDate,
-        projectDescription: this.projectDescription,
-        items: this.items,
-        allTotal: this.allTotal,
-      });
+      for (let i = 0; i < this.items.length; i++) {
+        this.currentInvoice.items[i].itemName = this.items[i].itemName;
+        this.currentInvoice.items[i].itemQty = this.items[i].itemQty;
+        this.currentInvoice.items[i].itemPrice = this.items[i].itemPrice;
+        this.currentInvoice.items[i].totalPrice = this.items[i].totalPrice;
+      }
     },
     toggleActive() {
       this.$store.commit("toggleActive", (this.getActive = !this.getActive));
       this.blurBg();
-    },
-    incrementTotalInvoices() {
-      this.$store.commit("setTotalInvoices", (this.totalInvoices += 1));
     },
     deleteItem(i) {
       const item = document.querySelector(".item");
@@ -347,18 +349,26 @@ export default {
     },
     allTotalCalc() {
       let allTotal = 0;
-      for (let i = 0; i < this.items.length; i++) {
+      for (let i = 0; i < this.currentInvoice.length; i++) {
         this.items[i].totalPrice =
           this.items[i].itemQty * this.items[i].itemPrice;
         allTotal += this.items[i].totalPrice;
       }
-      this.allTotal = allTotal
+      this.allTotal = allTotal;
     },
-    setStatusDraft() {
-      this.status = 'Draft'
-    },
-    setStatusSend() {
-      this.status = 'Pending'
+    itemsUnshift() {
+      const length = this.items.length;
+      if (this.currentInvoiceItemsLength < this.items.length) {
+        for (let i = length - 1; i < this.items.length; i++) {
+          this.currentInvoice.items.unshift({
+            id: this.items.length - 1,
+            itemName: this.items[i].itemName,
+            itemQty: this.items[i].itemQty,
+            itemPrice: this.items[i].itemPrice,
+            totalPrice: this.items[i].totalPrice,
+          });
+        }
+      }
     },
   },
   watch: {
@@ -665,7 +675,7 @@ input::-webkit-inner-spin-button {
 
 .bottomButtons {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   width: 100%;
 }
@@ -684,7 +694,7 @@ input::-webkit-inner-spin-button {
 .bottomButtons .save {
   display: flex;
   justify-content: space-between;
-  width: 55%;
+  width: 45%;
 }
 
 .bottomButtons .save button {
@@ -697,8 +707,9 @@ input::-webkit-inner-spin-button {
 }
 
 .bottomButtons .save :nth-child(1) {
-  background-color: #373b53;
+  background-color: #f9fafe;
   color: #7e88c3;
+  width: 5.5rem;
 }
 
 .bottomButtons .save :nth-child(2) {

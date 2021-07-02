@@ -67,9 +67,7 @@
         @click="
           toggleActive();
           disableStatusMenu();
-          blurBg();
-        "
-      >
+          blurBg()">
         <span><i class="fas fa-plus"></i></span> New Invoice
       </button>
     </div>
@@ -158,7 +156,6 @@ export default {
   watch: {
     invoicesLength(newValue, oldValue) {
       if (oldValue < newValue) {
-        console.log("Plus grand");
         this.$store.commit("setTotalInvoices", newValue);
       } else {
         console.log("plus petit");
